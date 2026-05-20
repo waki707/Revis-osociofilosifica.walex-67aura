@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15 Questões — Sociologia & Filosofia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0f;
+    --surface: #13131a;
+    --card: #1a1a24;
+    --border: #2a2a3a;
+    --gold: #f5a623;
+    --blue: #7b9cf7;
+    --green: #5de6a0;
+    --red: #f07070;
+    --text: #e8e8f0;
+    --muted: #777;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding-bottom: 80px;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 28px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #14141f 0%, var(--bg) 100%);
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 5vw, 30px);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--gold), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  header p { color: var(--muted); font-size: 12px; font-family: 'IBM Plex Mono', monospace; margin-top: 5px; }
+
+  /* Score HUD */
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 680px;
+    margin: 16px auto 0;
+    padding: 0 16px;
+  }
+  .hud-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    flex: 1;
+    text-align: center;
+  }
+  .hud-num { font-size: 24px; font-weight: 700; }
+  .hud-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  #hud-score .hud-num { color: var(--green); }
+  #hud-wrong .hud-num { color: var(--red); }
+  #hud-pct .hud-num { color: var(--blue); }
+
+  /* Progress bar */
+  .progress-wrap {
+    max-width: 680px;
+    margin: 14px auto 0;
+    padding: 0 16px;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--blue));
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-txt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+    text-align: right;
+  }
+
+  /* Questions */
+  .questions { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.3s;
+  }
+  .q-card.answered-correct { border-color: var(--green); }
+  .q-card.answered-wrong { border-color: var(--red); }
+
+  .q-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .q-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.05);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .q-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .tag-soc { background: rgba(245,166,35,0.15); color: var(--gold); }
+  .tag-filo { background: rgba(123,156,247,0.15); color: var(--blue); }
+
+  .q-text {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+
+  .q-opts { display: flex; flex-direction: column; gap: 8px; }
+  .q-opt {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.18s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .q-opt:hover:not(:disabled) {
+    background: rgba(123,156,247,0.08);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+  .q-opt .letra {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    min-width: 18px;
+    margin-top: 1px;
+    opacity: 0.5;
+  }
+  .q-opt.correct { border-color: var(--green); background: rgba(93,230,160,0.1); color: var(--green); }
+  .q-opt.correct .letra { opacity: 1; color: var(--green); }
+  .q-opt.wrong { border-color: var(--red); background: rgba(240,112,112,0.1); color: var(--red); }
+  .q-opt.wrong .letra { opacity: 1; color: var(--red); }
+  .q-opt:disabled { cursor: default; }
+
+  .q-feedback {
+    margin-top: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.65;
+    display: none;
+  }
+  .q-feedback.show { display: block; }
+  .q-feedback.correct { background: rgba(93,230,160,0.08); border: 1px solid rgba(93,230,160,0.2); color: #9df5ca; }
+  .q-feedback.wrong { background: rgba(240,112,112,0.08); border: 1px solid rgba(240,112,112,0.2); color: #f5b0b0; }
+  .q-feedback::before { font-weight: 700; display: block; margin-bottom: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .q-feedback.correct::before { content: "✓ CORRETO"; color: var(--green); }
+  .q-feedback.wrong::before { content: "✗ ERRADO"; color: var(--red); }
+
+  /* Final card */
+  .final-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    display: none;
+    margin-bottom: 14px;
+  }
+  .final-card.show { display: block; }
+  .final-emoji { font-size: 48px; margin-bottom: 12px; }
+  .final-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--gold), var(--green));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .final-msg { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .btn-reset {
+    margin-top: 20px;
+    background: linear-gradient(90deg, var(--gold), var(--blue));
+    border: none;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0b0b0f;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-reset:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>15 Questões — Soc. & Filo.</h1>
+  <p>// toque na alternativa para responder</p>
+</header>
+
+<div class="hud">
+  <div class="hud-box" id="hud-score">
+    <div class="hud-num" id="n-correct">0</div>
+    <div class="hud-label">Acertos</div>
+  </div>
+  <div class="hud-box" id="hud-wrong">
+    <div class="hud-num" id="n-wrong">0</div>
+    <div class="hud-label">Erros</div>
+  </div>
+  <div class="hud-box" id="hud-pct">
+    <div class="hud-num" id="n-pct">0%</div>
+    <div class="hud-label">Aproveitamento</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <div class="progress-txt" id="prog-txt">0 de 15 respondidas</div>
+</div>
+
+<div class="questions" id="questions"></div>
+
+<script>
+const questions = [
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "A capacidade humana de criar narrativas sobrenaturais para explicar fenômenos da natureza, como tempestades ou eclipses, é chamada de:",
+    opts: ["Hierofania","Secularização","Revolução Cognitiva","Fundamentalismo"],
+    correct: 2,
+    feedback: "A Revolução Cognitiva foi o salto evolutivo que permitiu aos humanos interpretar a natureza como personificação de entidades (deuses, espíritos), dando origem à religião e aos mitos."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "Segundo Émile Durkheim, o sagrado e o profano formam a base de toda religião. O que caracteriza o profano?",
+    opts: ["Objetos dotados de poder espiritual","Aquilo que é comum e sem significado religioso","Rituais de passagem entre mundos","A manifestação visível do sagrado"],
+    correct: 1,
+    feedback: "O profano é o âmbito do cotidiano, do comum e utilitário. O sagrado é sua oposição — o que é separado, especial e dotado de poder religioso."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "Uma cachoeira começa a ser venerada por uma comunidade indígena como morada de espíritos. Esse fenômeno em que o sagrado se torna visível num elemento físico é chamado de:",
+    opts: ["Profanação","Secularização","Mito","Hierofania"],
+    correct: 3,
+    feedback: "Hierofania (do grego: hiero = sagrado, phania = manifestação) é exatamente a irrupção do sagrado num objeto ou lugar do mundo físico, tornando-o perceptível."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "Os mitos de criação presentes em diversas culturas (como o Gênesis bíblico ou a cosmogonia grega) têm em comum:",
+    opts: [
+      "Serem relatos históricos com comprovação arqueológica",
+      "Explicarem de forma racional as origens do universo",
+      "Narrarem origens de caráter sobrenatural aceitas como verdade por uma comunidade",
+      "Representarem a separação entre Estado e religião"
+    ],
+    correct: 2,
+    feedback: "Mito não é sinônimo de mentira. São narrativas de origem e criação de caráter sobrenatural que funcionam como verdades fundamentais para as culturas que as vivem."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "A separação entre Estado e Igreja, com a ciência e a razão assumindo explicações antes dadas pela religião, descreve o processo de:",
+    opts: ["Fundamentalismo religioso","Hierofania","Secularização","Teocracia"],
+    correct: 2,
+    feedback: "A secularização é o processo histórico de racionalização do mundo moderno, no qual a religião perde espaço na vida pública e o Estado deixa de ser governado por princípios religiosos."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "Um grupo religioso defende que as leis do país devem ser baseadas literalmente nos mandamentos de seu livro sagrado e que todos, crentes ou não, devem obedecê-las. Isso caracteriza:",
+    opts: ["Secularização","Fundamentalismo religioso","Profanação","Hierofania"],
+    correct: 1,
+    feedback: "O fundamentalismo religioso é a postura de aplicar literalmente os textos sagrados e impor essas regras a toda a sociedade, sem adaptação ao contexto contemporâneo."
+  },
+  {
+    tag: "soc", cap: "Cap. 3",
+    text: "Qual das opções a seguir é um exemplo de Estado Teocrático?",
+    opts: ["França","Brasil","Irã","Alemanha"],
+    correct: 2,
+    feedback: "O Irã é governado por leis baseadas no Islã (Sharia), com poder político e religioso fundidos. Seu líder máximo é o Guia Supremo, um líder religioso, não um político civil."
+  },
+  {
+    tag: "soc", cap: "Cap. 4",
+    text: "A instituição social da família cumpre diversas funções. Qual das alternativas abaixo NÃO é considerada uma função da família?",
+    opts: ["Procriação","Socialização primária","Controle social","Criação de leis civis"],
+    correct: 3,
+    feedback: "A criação de leis é função do Estado, não da família. As funções da família são: procriação, socialização primária, função econômica e controle social."
+  },
+  {
+    tag: "soc", cap: "Cap. 4",
+    text: "A socialização primária realizada pela família é fundamental porque:",
+    opts: [
+      "Garante a renda financeira dos membros",
+      "Transmite os primeiros valores, normas e cultura aos indivíduos",
+      "Define as leis que a sociedade deve seguir",
+      "Substituiu a função da escola na educação formal"
+    ],
+    correct: 1,
+    feedback: "A socialização primária é o primeiro contato do indivíduo com as normas sociais — ocorre dentro da família e transmite língua, valores morais, identidade cultural e regras de convivência."
+  },
+  {
+    tag: "soc", cap: "Cap. 4",
+    text: "Novos arranjos familiares, como famílias homoafetivas e monoparentais, sendo reconhecidos e aceitos legalmente refletem:",
+    opts: [
+      "A dissolução da família como instituição social",
+      "O retorno ao fundamentalismo religioso",
+      "As mudanças na estrutura familiar contemporânea",
+      "A teocracia influenciando o direito de família"
+    ],
+    correct: 2,
+    feedback: "A sociologia reconhece que a família é uma instituição dinâmica. Os novos arranjos familiares mostram que o conceito de família se expande conforme a sociedade evolui, sem que a instituição perca sua função social."
+  },
+  {
+    tag: "filo", cap: "Cap. 3",
+    text: "Os sofistas foram um grupo de pensadores da Grécia antiga que se diferenciavam dos filósofos como Sócrates principalmente por:",
+    opts: [
+      "Buscarem a virtude moral acima de qualquer recompensa",
+      "Cobrarem pelo ensino e priorizarem a técnica de argumentar sem compromisso com a moral",
+      "Acreditarem na existência de um mundo perfeito de ideias",
+      "Usarem o método dialético para alcançar a verdade"
+    ],
+    correct: 1,
+    feedback: "Os sofistas ensinavam a 'areté' como excelência técnica (ser bom em argumentar, convencer), cobrando por isso. Não tinham compromisso com uma verdade moral universal, ao contrário de Sócrates."
+  },
+  {
+    tag: "filo", cap: "Cap. 3",
+    text: "Sócrates conduzia seus interlocutores a um estado de 'aporia'. O que isso significa?",
+    opts: [
+      "Um estado de iluminação e sabedoria plena",
+      "A síntese final de um debate filosófico",
+      "Um impasse em que o interlocutor percebe que não sabe responder a uma pergunta",
+      "O método de criar novas propostas filosóficas"
+    ],
+    correct: 2,
+    feedback: "A aporia é o impasse: Sócrates usava o Método Elenchos (refutação) para mostrar que as certezas do interlocutor eram contraditórias, levando-o ao reconhecimento da própria ignorância — o ponto de partida para o verdadeiro conhecimento."
+  },
+  {
+    tag: "filo", cap: "Cap. 3",
+    text: "Na Alegoria da Caverna de Platão, o filósofo que sai da caverna e enxerga o mundo real representa:",
+    opts: [
+      "O sofista que domina a arte da retórica",
+      "Aquele que se liberta da ignorância por meio do conhecimento filosófico",
+      "O líder político que impõe as leis à sociedade",
+      "O indivíduo que aceita as tradições sem questioná-las"
+    ],
+    correct: 1,
+    feedback: "A caverna representa o mundo das aparências e da ignorância. Os prisioneiros são as pessoas que tomam as sombras (ilusões) por realidade. O filósofo é quem rompe com esse véu e alcança o mundo verdadeiro do conhecimento."
+  },
+  {
+    tag: "filo", cap: "Cap. 4",
+    text: "Segundo a Teoria das Ideias de Platão, qual das afirmações a seguir está CORRETA?",
+    opts: [
+      "O mundo físico que percebemos é a realidade plena e verdadeira",
+      "As ideias são construídas a partir da experiência sensorial do indivíduo",
+      "Existe um mundo perfeito de formas eternas e imutáveis do qual o mundo físico é cópia imperfeita",
+      "A realidade é relativa e depende da perspectiva de cada um"
+    ],
+    correct: 2,
+    feedback: "Para Platão, o mundo físico é apenas uma cópia imperfeita do mundo das Ideias — perfeito, eterno e imutável. Por exemplo, todos os cavalos que vemos são cópias imperfeitas do 'Cavalo Perfeito' que existe no mundo ideal."
+  },
+  {
+    tag: "filo", cap: "Cap. 4",
+    text: "As três faculdades da alma segundo Platão são: Apetitiva, Irascível e Racional. Para uma vida virtuosa, o equilíbrio correto entre elas exige que:",
+    opts: [
+      "A faculdade apetitiva domine as outras, pois as necessidades físicas são primárias",
+      "A faculdade irascível controle os desejos e as necessidades",
+      "A faculdade racional domine as outras duas, equilibrando desejos e necessidades",
+      "As três faculdades ajam com igual intensidade e sem hierarquia"
+    ],
+    correct: 2,
+    feedback: "Para Platão, a virtude depende do domínio da Razão. A parte Racional deve governar a Irascível (emoções) e a Apetitiva (necessidades físicas), mantendo a harmonia e o equilíbrio na alma."
+  }
+];
+
+let answered = {};
+let correct = 0;
+let wrong = 0;
+
+function buildQuestions() {
+  const container = document.getElementById('questions');
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = 'q' + i;
+
+    const letters = ['A','B','C','D'];
+    const optsHtml = q.opts.map((o, j) =>
+      `<button class="q-opt" onclick="answer(${i},${j})" id="opt-${i}-${j}">
+        <span class="letra">${letters[j]}</span>${o}
+      </button>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="q-header">
+        <span class="q-num">Q${String(i+1).padStart(2,'0')}</span>
+        <span class="q-tag tag-${q.tag}">${q.tag.toUpperCase()} · ${q.cap}</span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="q-opts">${optsHtml}</div>
+      <div class="q-feedback" id="fb-${i}">${q.feedback}</div>
+    `;
+    container.appendChild(card);
+  });
+
+  const final = document.createElement('div');
+  final.className = 'final-card';
+  final.id = 'final';
+  final.innerHTML = `
+    <div class="final-emoji" id="final-emoji">🎯</div>
+    <div class="final-score" id="final-score"></div>
+    <div class="final-msg" id="final-msg"></div>
+    <button class="btn-reset" onclick="resetAll()">↺ Refazer tudo</button>
+  `;
+  container.appendChild(final);
+}
+
+function answer(qi, oi) {
+  if (answered[qi] !== undefined) return;
+  answered[qi] = oi;
+
+  const isCorrect = oi === questions[qi].correct;
+  if (isCorrect) correct++; else wrong++;
+
+  const card = document.getElementById('q' + qi);
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  questions[qi].opts.forEach((_, j) => {
+    const btn = document.getElementById(`opt-${qi}-${j}`);
+    btn.disabled = true;
+    if (j === questions[qi].correct) btn.classList.add('correct');
+    else if (j === oi && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+
+  updateHUD();
+
+  if (Object.keys(answered).length === questions.length) showFinal();
+}
+
+function updateHUD() {
+  const total = Object.keys(answered).length;
+  document.getElementById('n-correct').textContent = correct;
+  document.getElementById('n-wrong').textContent = wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('n-pct').textContent = pct + '%';
+  document.getElementById('prog').style.width = (total / questions.length * 100) + '%';
+  document.getElementById('prog-txt').textContent = total + ' de 15 respondidas';
+}
+
+function showFinal() {
+  const pct = Math.round((correct / 15) * 100);
+  const emojis = pct >= 80 ? '🔥' : pct >= 60 ? '💪' : '📚';
+  const msgs = pct >= 80 ? 'Arrasou! Tá pronto pra prova.' : pct >= 60 ? 'Bom resultado! Revise os erros.' : 'Revise o conteúdo e tente novamente.';
+  document.getElementById('final-emoji').textContent = emojis;
+  document.getElementById('final-score').textContent = correct + '/15 — ' + pct + '%';
+  document.getElementById('final-msg').textContent = msgs;
+  document.getElementById('final').classList.add('show');
+  document.getElementById('final').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetAll() {
+  answered = {}; correct = 0; wrong = 0;
+  document.getElementById('questions').innerHTML = '';
+  buildQuestions();
+  updateHUD();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildQuestions();
+</script>
+</body>
+</html>

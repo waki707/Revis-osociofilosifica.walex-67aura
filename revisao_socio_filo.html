@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisão — Sociologia & Filosofia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e12;
+    --surface: #16161c;
+    --card: #1e1e28;
+    --border: #2e2e3e;
+    --accent-soc: #f5a623;
+    --accent-filo: #7b9cf7;
+    --accent-q: #5de6a0;
+    --text: #e8e8f0;
+    --muted: #888;
+    --correct: #5de6a0;
+    --wrong: #f07070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+  header {
+    background: linear-gradient(135deg, #1a1a28 0%, #0e0e16 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 24px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(123,156,247,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 6vw, 36px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(90deg, var(--accent-soc), var(--accent-filo));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p { color: var(--muted); margin-top: 6px; font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+
+  nav {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px 16px 0;
+    flex-wrap: wrap;
+  }
+  nav button {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  nav button.active, nav button:hover {
+    border-color: var(--accent-filo);
+    color: var(--accent-filo);
+  }
+  nav button[data-tab="soc"].active, nav button[data-tab="soc"]:hover {
+    border-color: var(--accent-soc);
+    color: var(--accent-soc);
+  }
+  nav button[data-tab="q"].active, nav button[data-tab="q"]:hover {
+    border-color: var(--accent-q);
+    color: var(--accent-q);
+  }
+
+  .tab { display: none; padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+  .tab.active { display: block; }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin: 24px 0 10px;
+  }
+  .chapter {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .chapter-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .chapter-ctx {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 16px;
+  }
+  .concept {
+    border-left: 3px solid var(--border);
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border-radius: 0 8px 8px 0;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .concept:hover { border-color: var(--accent-filo); }
+  #tab-soc .concept:hover { border-color: var(--accent-soc); }
+  .concept-term {
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .concept-term span.badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(123,156,247,0.15);
+    color: var(--accent-filo);
+  }
+  #tab-soc .concept-term span.badge {
+    background: rgba(245,166,35,0.15);
+    color: var(--accent-soc);
+  }
+  .concept-def {
+    font-size: 13px;
+    color: #bbb;
+    margin-top: 6px;
+    line-height: 1.6;
+    display: none;
+  }
+  .concept.open .concept-def { display: block; }
+  .concept-arrow { margin-left: auto; font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+  .concept.open .concept-arrow { transform: rotate(180deg); }
+
+  /* QUESTÕES */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.3s;
+  }
+  .q-card.correct { border-color: var(--correct); }
+  .q-card.wrong { border-color: var(--wrong); }
+  .q-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .q-text { font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
+  .q-options { display: flex; flex-direction: column; gap: 8px; }
+  .q-opt {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .q-opt:hover:not(:disabled) { border-color: var(--accent-q); color: var(--accent-q); }
+  .q-opt.correct { border-color: var(--correct); background: rgba(93,230,160,0.1); color: var(--correct); }
+  .q-opt.wrong { border-color: var(--wrong); background: rgba(240,112,112,0.1); color: var(--wrong); }
+  .q-opt:disabled { cursor: default; }
+  .q-feedback {
+    margin-top: 12px;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    display: none;
+    line-height: 1.6;
+  }
+  .q-feedback.show { display: block; }
+  .q-feedback.correct { background: rgba(93,230,160,0.1); color: var(--correct); }
+  .q-feedback.wrong { background: rgba(240,112,112,0.1); color: var(--wrong); }
+
+  /* Dissertativa */
+  .q-text-area {
+    width: 100%;
+    min-height: 100px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    resize: vertical;
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .q-text-area:focus { outline: none; border-color: var(--accent-q); }
+  .btn-check {
+    background: var(--accent-q);
+    color: #0e0e12;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-check:hover { opacity: 0.85; }
+  .gabarito {
+    margin-top: 12px;
+    background: rgba(93,230,160,0.07);
+    border: 1px solid rgba(93,230,160,0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #9df5ca;
+    line-height: 1.7;
+    display: none;
+  }
+  .gabarito.show { display: block; }
+  .gabarito strong { color: var(--correct); }
+
+  .score-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+  .score-num { font-size: 28px; font-weight: 700; color: var(--accent-q); }
+  .score-label { color: var(--muted); font-size: 11px; }
+  .reset-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { border-color: var(--accent-q); color: var(--accent-q); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Revisão — Sociologia & Filosofia</h1>
+  <p>// prova amanhã · toque nos conceitos para abrir</p>
+</header>
+
+<nav>
+  <button class="active" data-tab="soc">📘 Sociologia</button>
+  <button data-tab="filo">📗 Filosofia</button>
+  <button data-tab="q">✏️ Questões</button>
+</nav>
+
+<!-- ====== SOCIOLOGIA ====== -->
+<div class="tab active" id="tab-soc">
+
+  <div class="section-label">Cap. 3 — Religião e Sociedade</div>
+  <div class="chapter">
+    <div class="chapter-title" style="color: var(--accent-soc)">Sociologia da Religião</div>
+    <div class="chapter-ctx">// contexto: como a religião se organiza na sociedade</div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Revolução Cognitiva <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Capacidade humana de interpretar as causas naturais e criar explicações sobrenaturais. Os humanos passaram a enxergar a natureza como personificação de entidades (deuses, espíritos). É o que permitiu a criação de mitos e religiões.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Sagrado <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Tudo aquilo que carrega significado religioso — pode ser um objeto, lugar, data ou pessoa. O sagrado não é necessariamente "bom": é simplesmente separado do comum, dotado de poder especial (conceito de Durkheim).</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Profano <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Aquilo que é comum, cotidiano, sem significado religioso. O profano é o oposto do sagrado. A divisão sagrado/profano é a base da sociologia da religião de Durkheim.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Hierofania <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Manifestação do sagrado no mundo físico — quando o sagrado se torna visível e perceptível para as pessoas. Ex: um milagre, uma visão religiosa, um lugar considerado sagrado. Termo criado pelo estudioso Mircea Eliade.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Mito <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Narrativa de origem e criação de caráter sobrenatural. Os mitos explicam como o mundo, a humanidade ou fenômenos naturais surgiram. Não é sinônimo de "mentira" — para as culturas que os vivem, são verdades fundamentais.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Secularização <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Processo de racionalização do mundo moderno, com separação entre Estado e Igreja. A religião perde espaço na vida pública e política. Ciência e razão passam a explicar o que antes era explicado pela religião.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Estados Teocráticos <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Estados onde as leis religiosas governam a política. O poder político e religioso se fundem — líderes religiosos governam ou as leis do país são baseadas em textos sagrados. Ex: Irã, Vaticano, Arábia Saudita.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Fundamentalismo Religioso <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Corrente que defende a aplicação literal dos textos religiosos, sem adaptação ao mundo contemporâneo. Busca forçar as pessoas a seguir as regras religiosas à risca. Pode levar a intolerância e conflitos quando imposto a toda a sociedade.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Cap. 4 — Família como Instituição Social</div>
+  <div class="chapter">
+    <div class="chapter-title" style="color: var(--accent-soc)">A Família</div>
+    <div class="chapter-ctx">// a família como base da organização social</div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Instituição Social <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Estrutura social organizada que garante a reposição de pessoas na sociedade, integra novos integrantes e preserva a ordem social. A família é uma das principais instituições sociais, ao lado da escola, Igreja e Estado.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Funções da Família <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">
+        <b>Procriação:</b> reprodução biológica da espécie.<br>
+        <b>Socialização Primária:</b> transmissão de valores, normas e cultura para os filhos.<br>
+        <b>Função Econômica:</b> produção e compartilhamento de recursos entre membros.<br>
+        <b>Controle Social:</b> reforço de normas e comportamentos aceitos pela sociedade.
+      </div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">SOC</span> Mudanças na Família <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">A estrutura familiar contemporânea passou por grandes transformações. Novos arranjos familiares (homoafetivos, monoparentais, recompostos) são cada vez mais reconhecidos e aceitos legalmente. A família nuclear tradicional não é mais o único modelo.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== FILOSOFIA ====== -->
+<div class="tab" id="tab-filo">
+
+  <div class="section-label">Cap. 3 — Sócrates e os Sofistas</div>
+  <div class="chapter">
+    <div class="chapter-title" style="color: var(--accent-filo)">Sócrates vs. Sofistas</div>
+    <div class="chapter-ctx">// contexto: Atenas — tempos áureos, prosperidade, democracia nascente</div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Sofistas <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Filósofos que <b>cobravam pelo ensino</b> e ensinavam a técnica de argumentar e convencer. Para eles, "areté" (excelência/virtude) significava ser bom em algo tecnicamente — ser um bom orador, por exemplo — sem necessariamente ser moralmente virtuoso. Não tinham caráter moral fixo e duvidavam de verdades absolutas.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Sócrates — Autoconhecimento <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Sócrates buscava o <b>conhecimento de si mesmo</b> ("Conhece-te a ti mesmo") como caminho para a elevação pessoal e para alcançar um status moralmente correto. Acreditava que a virtude é conhecimento — quem realmente sabe o que é o bem, age bem.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Aporia <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Impasse filosófico — o momento em que não se consegue responder a uma determinada pergunta. Sócrates usava isso estrategicamente: levava seu interlocutor ao estado de aporia para mostrar que ele não sabia tanto quanto pensava.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Método Elenchos <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Método da <b>refutação</b>. Sócrates fazia perguntas para questionar e derrubar as "verdades" que as pessoas achavam que tinham. Objetivo: expor contradições e mostrar que a pessoa não sabia realmente o que afirmava saber.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Método Dialético <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Após refutar uma ideia, o método dialético cria <b>novas propostas</b> para as questões. Funciona em 3 etapas:<br><b>Tese:</b> ideia inicial.<br><b>Antítese:</b> contradição da tese.<br><b>Síntese:</b> nova ideia que supera a contradição.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Alegoria da Caverna <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Metáfora de Platão: prisioneiros numa caverna veem apenas sombras na parede e acham que são a realidade. O filósofo é aquele que <b>rompe com a ignorância</b>, sai da caverna e enxerga o mundo verdadeiro. A filosofia liberta as pessoas do véu da ignorância.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Cap. 4 — Platão</div>
+  <div class="chapter">
+    <div class="chapter-title" style="color: var(--accent-filo)">Platão</div>
+    <div class="chapter-ctx">// contexto: pré-guerra do Peloponeso · discípulo de Sócrates</div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Teoria das Ideias (Formas) <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">Para Platão, existe um <b>mundo perfeito das Ideias</b>, onde estão as formas perfeitas, eternas e imutáveis de tudo que existe. O mundo que vemos é apenas uma cópia imperfeita dessas formas. Ex: todos os cavalos que vemos são cópias do "Cavalo Perfeito" que existe no mundo ideal.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> A Alma <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">A alma é o <b>instrumento de conhecimento do mundo ideal</b>. Antes de nascer, a alma existia no mundo das Ideias e contemplava as formas perfeitas. Ao nascer, esquece. A função da alma é <b>lembrar</b> (anamnese) o que já conheceu.</div>
+    </div>
+
+    <div class="concept" onclick="toggle(this)">
+      <div class="concept-term"><span class="badge">FILO</span> Faculdades da Alma <span class="concept-arrow">▼</span></div>
+      <div class="concept-def">
+        <b>Apetitiva:</b> parte ligada às necessidades básicas (fome, sede, prazer físico).<br>
+        <b>Irascível:</b> parte ligada aos desejos e emoções (coragem, ira, ambição).<br>
+        <b>Racional:</b> parte superior, responsável pelo equilíbrio entre as outras duas. Para Platão, a vida virtuosa exige que a Razão controle as outras faculdades.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== QUESTÕES ====== -->
+<div class="tab" id="tab-q">
+
+  <div class="score-bar">
+    <div>
+      <div class="score-num" id="score">0/0</div>
+      <div class="score-label">ACERTOS (múltipla escolha)</div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ resetar</button>
+  </div>
+
+  <!-- MÚLTIPLA ESCOLHA -->
+  <div class="section-label">— Múltipla Escolha</div>
+
+  <div class="q-card" id="q1">
+    <div class="q-num">Q01 · SOCIOLOGIA</div>
+    <div class="q-text">Quando um objeto comum, como uma pedra ou uma árvore, passa a ser considerado de grande poder espiritual por uma comunidade religiosa, estamos diante de qual fenômeno?</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q1')">A) Secularização</button>
+      <button class="q-opt" onclick="answer(this,'correct','q1')">B) Hierofania</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q1')">C) Profano</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q1')">D) Aporia</button>
+    </div>
+    <div class="q-feedback" id="fb-q1">A hierofania é exatamente a manifestação do sagrado em algo do mundo físico — quando o sagrado se torna visível e perceptível.</div>
+  </div>
+
+  <div class="q-card" id="q2">
+    <div class="q-num">Q02 · SOCIOLOGIA</div>
+    <div class="q-text">Um país que usa as leis de um livro sagrado como sua constituição jurídica é chamado de:</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q2')">A) Estado laico</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q2')">B) Estado democrático</button>
+      <button class="q-opt" onclick="answer(this,'correct','q2')">C) Estado teocrático</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q2')">D) Estado secularizado</button>
+    </div>
+    <div class="q-feedback" id="fb-q2">Estado teocrático: o poder político e o religioso se fundem, e as leis do Estado são baseadas nos preceitos religiosos.</div>
+  </div>
+
+  <div class="q-card" id="q3">
+    <div class="q-num">Q03 · SOCIOLOGIA</div>
+    <div class="q-text">A socialização primária é uma das funções da família. Ela consiste em:</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q3')">A) Gerar renda para os membros da família</button>
+      <button class="q-opt" onclick="answer(this,'correct','q3')">B) Transmitir valores, normas e cultura para os filhos</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q3')">C) Garantir a reprodução biológica</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q3')">D) Punir comportamentos desviantes</button>
+    </div>
+    <div class="q-feedback" id="fb-q3">A socialização primária é a primeira aprendizagem social que ocorre dentro da família: valores, língua, normas, identidade cultural.</div>
+  </div>
+
+  <div class="q-card" id="q4">
+    <div class="q-num">Q04 · FILOSOFIA</div>
+    <div class="q-text">Os sofistas se diferenciavam de Sócrates principalmente porque:</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q4')">A) Buscavam a virtude moral acima de tudo</button>
+      <button class="q-opt" onclick="answer(this,'correct','q4')">B) Cobravam pelo ensino e priorizavam a técnica de argumentar, sem compromisso moral</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q4')">C) Acreditavam no mundo das Ideias perfeitas</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q4')">D) Usavam o método dialético para alcançar a verdade</button>
+    </div>
+    <div class="q-feedback" id="fb-q4">Os sofistas ensinavam a "técnica" de argumentar por dinheiro — "areté" para eles era ser bom em algo, não necessariamente ser virtuoso ou moral.</div>
+  </div>
+
+  <div class="q-card" id="q5">
+    <div class="q-num">Q05 · FILOSOFIA</div>
+    <div class="q-text">Na dialética socrática, qual é a ordem correta das etapas?</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q5')">A) Síntese → Tese → Antítese</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q5')">B) Antítese → Síntese → Tese</button>
+      <button class="q-opt" onclick="answer(this,'correct','q5')">C) Tese → Antítese → Síntese</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q5')">D) Aporia → Elenchos → Tese</button>
+    </div>
+    <div class="q-feedback" id="fb-q5">Tese (ideia inicial) → Antítese (contradição) → Síntese (nova ideia que supera a contradição). Esse é o movimento dialético.</div>
+  </div>
+
+  <div class="q-card" id="q6">
+    <div class="q-num">Q06 · FILOSOFIA</div>
+    <div class="q-text">Para Platão, a função da alma humana é:</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q6')">A) Criar novas ideias a partir da experiência sensorial</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q6')">B) Controlar os instintos e desejos do corpo</button>
+      <button class="q-opt" onclick="answer(this,'correct','q6')">C) Lembrar as formas perfeitas contempladas antes do nascimento</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q6')">D) Alcançar a aporia para encontrar a verdade</button>
+    </div>
+    <div class="q-feedback" id="fb-q6">Para Platão, a alma já existia no mundo das Ideias antes de nascer. Conhecer é recordar (anamnese) — a alma lembra o que contemplou no mundo ideal.</div>
+  </div>
+
+  <div class="q-card" id="q7">
+    <div class="q-num">Q07 · FILOSOFIA</div>
+    <div class="q-text">A Alegoria da Caverna de Platão representa:</div>
+    <div class="q-options">
+      <button class="q-opt" onclick="answer(this,'wrong','q7')">A) A importância da experiência sensorial para o conhecimento</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q7')">B) A divisão da alma em três faculdades</button>
+      <button class="q-opt" onclick="answer(this,'correct','q7')">C) O processo de libertação da ignorância pelo conhecimento filosófico</button>
+      <button class="q-opt" onclick="answer(this,'wrong','q7')">D) O método socrático de refutação</button>
+    </div>
+    <div class="q-feedback" id="fb-q7">A caverna representa a ignorância; os prisioneiros são as pessoas presas em ilusões. O filósofo é quem sai da caverna (rompe com a ignorância) e enxerga a realidade verdadeira.</div>
+  </div>
+
+  <!-- DISSERTATIVAS -->
+  <div class="section-label">— Dissertativas (responda e veja o gabarito)</div>
+
+  <div class="q-card">
+    <div class="q-num">Q08 · SOCIOLOGIA — Dissertativa</div>
+    <div class="q-text">Explique a diferença entre <b>sagrado</b> e <b>profano</b> e dê um exemplo do cotidiano de como um objeto pode ser considerado sagrado em determinado contexto.</div>
+    <textarea class="q-text-area" placeholder="Escreva sua resposta aqui..."></textarea>
+    <button class="btn-check" onclick="showGabarito(this)">Ver gabarito ▸</button>
+    <div class="gabarito"><strong>Gabarito:</strong> O sagrado é tudo aquilo que possui significado religioso especial, separado do cotidiano — pode ser um objeto, lugar, data ou pessoa. O profano é o oposto: aquilo que é comum, sem poder ou significado religioso. Exemplo: uma hóstia para um cristão é sagrada; fora do contexto litúrgico, um pão comum é profano. O mesmo objeto (pão) muda de status dependendo do contexto religioso.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-num">Q09 · SOCIOLOGIA — Dissertativa</div>
+    <div class="q-text">O que é o <b>fundamentalismo religioso</b> e quais são os seus principais riscos para a sociedade democrática?</div>
+    <textarea class="q-text-area" placeholder="Escreva sua resposta aqui..."></textarea>
+    <button class="btn-check" onclick="showGabarito(this)">Ver gabarito ▸</button>
+    <div class="gabarito"><strong>Gabarito:</strong> O fundamentalismo religioso é uma corrente que defende a aplicação literal dos textos sagrados, sem adaptação ao contexto histórico e social atual. Seus adeptos buscam impor essas regras a toda a sociedade. Os riscos para a democracia incluem: intolerância religiosa, cerceamento de liberdades individuais (especialmente de mulheres e minorias), uso da violência em nome da fé e a fusão do poder político com o religioso (teocracia), que vai contra o princípio de Estado laico.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-num">Q10 · FILOSOFIA — Dissertativa</div>
+    <div class="q-text">Compare os métodos filosóficos de Sócrates: <b>Elenchos</b> e <b>Dialético</b>. Como os dois se complementam na busca pela verdade?</div>
+    <textarea class="q-text-area" placeholder="Escreva sua resposta aqui..."></textarea>
+    <button class="btn-check" onclick="showGabarito(this)">Ver gabarito ▸</button>
+    <div class="gabarito"><strong>Gabarito:</strong> O Método Elenchos é o da refutação: Sócrates questionava as respostas das pessoas para mostrar que suas "certezas" eram contraditórias, levando-as à aporia (impasse). Já o Método Dialético vai além: após refutar uma ideia, propõe-se uma nova visão por meio de três etapas — Tese (ideia inicial), Antítese (contradição) e Síntese (nova verdade que supera a contradição). Os dois se complementam: o Elenchos limpa o terreno das falsas verdades; o Dialético constrói, a partir do zero, uma compreensão mais profunda.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-num">Q11 · FILOSOFIA — Dissertativa</div>
+    <div class="q-text">Explique a <b>Teoria das Ideias de Platão</b> e como ela se relaciona com o conceito de <b>alma</b> e suas <b>faculdades</b>.</div>
+    <textarea class="q-text-area" placeholder="Escreva sua resposta aqui..."></textarea>
+    <button class="btn-check" onclick="showGabarito(this)">Ver gabarito ▸</button>
+    <div class="gabarito"><strong>Gabarito:</strong> Para Platão, existe um mundo das Ideias — perfeito, eterno e imutável — onde estão as formas verdadeiras de todas as coisas. O mundo físico que percebemos é apenas uma cópia imperfeita dessas formas. A alma é o instrumento que permite ao ser humano acessar esse mundo ideal: antes de nascer, a alma contemplava as formas perfeitas, e a missão do filósofo é "lembrar" (anamnese) o que a alma já conheceu. A alma possui três faculdades: Apetitiva (necessidades físicas), Irascível (emoções e desejos) e Racional (razão, que deve equilibrar as outras duas). A vida virtuosa depende do domínio da razão sobre as outras partes da alma.</div>
+  </div>
+
+</div>
+
+<script>
+  // Tab navigation
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Concept toggle
+  function toggle(el) { el.classList.toggle('open'); }
+
+  // Multiple choice
+  let scores = { correct: 0, total: 0 };
+  let answered = {};
+
+  function answer(btn, result, qid) {
+    if (answered[qid]) return;
+    answered[qid] = true;
+    const card = document.getElementById(qid);
+    const opts = card.querySelectorAll('.q-opt');
+    const fb = document.getElementById('fb-' + qid);
+
+    opts.forEach(o => { o.disabled = true; });
+    btn.classList.add(result);
+    if (result === 'wrong') {
+      opts.forEach(o => { if (o.getAttribute('onclick').includes("'correct'")) o.classList.add('correct'); });
+    }
+    fb.classList.add('show', result);
+    card.classList.add(result === 'correct' ? 'correct' : 'wrong');
+
+    scores.total++;
+    if (result === 'correct') scores.correct++;
+    document.getElementById('score').textContent = scores.correct + '/' + scores.total;
+  }
+
+  function showGabarito(btn) {
+    const gabarito = btn.nextElementSibling;
+    gabarito.classList.toggle('show');
+    btn.textContent = gabarito.classList.contains('show') ? 'Fechar gabarito ▾' : 'Ver gabarito ▸';
+  }
+
+  function resetAll() {
+    scores = { correct: 0, total: 0 };
+    answered = {};
+    document.getElementById('score').textContent = '0/0';
+    document.querySelectorAll('.q-card').forEach(c => c.classList.remove('correct','wrong'));
+    document.querySelectorAll('.q-opt').forEach(o => {
+      o.classList.remove('correct','wrong');
+      o.disabled = false;
+    });
+    document.querySelectorAll('.q-feedback').forEach(f => f.classList.remove('show','correct','wrong'));
+    document.querySelectorAll('.gabarito').forEach(g => g.classList.remove('show'));
+    document.querySelectorAll('.btn-check').forEach(b => b.textContent = 'Ver gabarito ▸');
+    document.querySelectorAll('.q-text-area').forEach(t => t.value = '');
+  }
+</script>
+</body>
+</html>
